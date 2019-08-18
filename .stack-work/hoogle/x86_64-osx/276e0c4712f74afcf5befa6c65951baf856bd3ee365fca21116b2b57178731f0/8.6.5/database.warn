@@ -1,0 +1,52 @@
+Cabal:3824:failed to parse: }
+attoparsec:114:failed to parse: }
+base:3125:failed to parse: class a ~# b => (~~) (a :: k0) (b :: k1)
+base:3175:failed to parse: instance forall k2 k1 (a :: k1) (b :: k2). (a GHC.Types.~~ b) => GHC.Read.Read (a Data.Type.Equality.:~~: b)
+base:3176:failed to parse: instance forall k2 k1 (a :: k1) (b :: k2). (a GHC.Types.~~ b) => GHC.Enum.Bounded (a Data.Type.Equality.:~~: b)
+base:3179:failed to parse: instance forall k2 k1 (a :: k1) (b :: k2). (a GHC.Types.~~ b) => GHC.Enum.Enum (a Data.Type.Equality.:~~: b)
+base:6318:failed to parse:     -- | Generic representation type
+base:6320:failed to parse: }
+base:6340:failed to parse:     -- | Generic representation type
+base:6342:failed to parse: }
+base:7233:failed to parse: pattern App :: forall k2 (t :: k2). () => forall k1 (a :: k1 -> k2) (b :: k1). t ~ a b => TypeRep a -> TypeRep b -> TypeRep t
+base:7236:failed to parse: pattern Con :: forall k (a :: k). () => IsApplication a ~ "" => TyCon -> TypeRep a
+base:7254:failed to parse: pattern Con' :: forall k (a :: k). () => IsApplication a ~ "" => TyCon -> [SomeTypeRep] -> TypeRep a
+base:7263:failed to parse: pattern Fun :: forall k (fun :: k). () => forall (r1 :: RuntimeRep) (r2 :: RuntimeRep) (arg :: TYPE r1) (res :: TYPE r2). (k ~ Type, fun ~~ (arg -> res)) => TypeRep arg -> TypeRep res -> TypeRep fun
+base:10332:failed to parse: pattern ErrorCall :: String -> ErrorCall
+base:11169:failed to parse: pattern ErrorCall :: String -> ErrorCall
+base:12049:failed to parse: type HasCallStack = (?callStack :: CallStack)
+base:19126:failed to parse: pattern KindRepTypeLit :: TypeLitSort -> String -> KindRep
+base:23978:failed to parse: instance forall i j (a :: i) (b :: j). (Data.Typeable.Internal.Typeable i, Data.Typeable.Internal.Typeable j, Data.Typeable.Internal.Typeable a, Data.Typeable.Internal.Typeable b, a GHC.Types.~~ b) => Data.Data.Data (a Data.Type.Equality.:~~: b)
+base:24236:failed to parse: data State# (a :: Type) :: Type -> TYPE TupleRep ([] :: [RuntimeRep])
+base:24241:failed to parse: data Void# :: TYPE TupleRep ([] :: [RuntimeRep])
+base:24261:failed to parse: data Proxy# :: forall k0. () => k0 -> TYPE TupleRep ([] :: [RuntimeRep])
+base:27674:failed to parse: class a ~# b => (~~) (a :: k0) (b :: k1)
+base:27800:failed to parse:     -- | The <a>Item</a> type function returns the type of items of the
+base:27801:failed to parse:     --   structure <tt>l</tt>.
+base:27803:failed to parse: }
+base-prelude:151:failed to parse: assertError :: ?callStack :: CallStack => Bool -> a -> a
+base-prelude:2400:failed to parse: newtype Compose (f :: k -> Type) (g :: k1 -> k) (a :: k1) :: forall k k1. () => k -> Type -> k1 -> k -> k1 -> Type
+base-prelude:5850:failed to parse: pattern ErrorCall :: () => () => String -> ErrorCall
+base-prelude:6027:failed to parse: newtype Const a (b :: k) :: forall k. () => Type -> k -> Type
+base-prelude:6140:failed to parse: newtype Ap (f :: k -> Type) (a :: k) :: forall k. () => k -> Type -> k -> Type
+base-prelude:6231:failed to parse: newtype Alt (f :: k -> Type) (a :: k) :: forall k. () => k -> Type -> k -> Type
+base-prelude:7371:failed to parse: data Proxy (t :: k) :: forall k. () => k -> Type
+base-prelude:7408:failed to parse: data (:~:) (a :: k) (b :: k) :: forall k. () => k -> k -> Type
+base-prelude:7415:failed to parse: data (:~~:) (a :: k1) (b :: k2) :: forall k1 k2. () => k1 -> k2 -> Type
+comonad:409:failed to parse: newtype IdentityT (f :: k -> Type) (a :: k) :: forall k. () => k -> Type -> k -> Type
+containers:1295:failed to parse: pattern Empty :: Seq a
+containers:1299:failed to parse: pattern (:<|) :: a -> Seq a -> Seq a
+containers:1303:failed to parse: pattern (:|>) :: Seq a -> a -> Seq a
+containers:2161:failed to parse: pattern Empty :: Seq a
+containers:2165:failed to parse: pattern (:<|) :: a -> Seq a -> Seq a
+containers:2169:failed to parse: pattern (:|>) :: Seq a -> a -> Seq a
+ghc:285:failed to parse: }
+ghc:306:failed to parse: }
+ghc:1326:failed to parse: type HasCallStack = ?callStack :: CallStack
+ghc:15237:failed to parse: }
+ghc:24647:failed to parse: }
+mtl:1036:failed to parse: newtype ContT (r :: k) (m :: k -> Type) a :: forall k. () => k -> k -> Type -> Type -> Type
+primitive:18:failed to parse:     -- | State token type
+primitive:20:failed to parse: }
+profunctors:1155:failed to parse: }
+profunctors:1187:failed to parse: }
