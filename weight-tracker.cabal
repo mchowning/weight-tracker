@@ -2,7 +2,7 @@ name:                weight-tracker
 version:             0.1.0.0
 -- synopsis:
 -- description:
-homepage:            https://github.com/githubuser/weight-tracker#readme
+homepage:            https://github.com/githubuser/weight-tracker
 license:             BSD3
 license-file:        LICENSE
 author:              Author name here
@@ -11,7 +11,6 @@ copyright:           2019 Author name here
 category:            Web
 build-type:          Simple
 cabal-version:       >=1.10
-extra-source-files:  README.md
 
 executable weight-tracker
   hs-source-dirs:      src
@@ -25,6 +24,6 @@ executable weight-tracker
                      , split
                      , text
                      , time
-                     , turtle
+                    , turtle
                      , unordered-containers
   other-modules:     Date

@@ -58,7 +58,7 @@ main = do
   let allDaysWithWeights = filledDays savedWeights
   when (length allDaysWithWeights >= 2 * 7) (displayMovingAverages 2 allDaysWithWeights)
   where filename = "/Users/matt/Dropbox/Exercise/weights.csv"
-  -- where filename = "weights.csv"
+  -- where filename = "sample.csv"
 
 blankLine :: IO ()
 blankLine = putStrLn ""
@@ -223,8 +223,8 @@ movingAverages n es =
   let week = 7
       windowEveryNDays = week
       windowSize = week * n
-      windows = divvy windowSize windowEveryNDays (reverse es)
-      windowResult window = (fst (last window), fst (head window), average (fromWeight . snd <$> window))
+      windows = reverse (divvy windowSize windowEveryNDays es)
+      windowResult window = (fst (head window), fst (last window), average (fromWeight . snd <$> window))
   in windowResult <$> windows
 
 -- fillEntries :: Entry -> Entry -> [Entry] -> [Entry]

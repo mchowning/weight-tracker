@@ -2,15 +2,11 @@
   hash: 156f61888aa73360f69ecf164cbd9026fa449cb75e5c39c1bd063768ac45eea7
   size: 581
   modtime: 1565260164
-/Users/matt/dev/haskell/weight-tracker/README.md:
-  hash: e8ea90647512ace864195b52a0009e2b0a550db50a12f968ef7fcac45e0cb525
-  size: 241
-  modtime: 1565263513
 /Users/matt/dev/haskell/weight-tracker/src/Main.hs:
-  hash: 460a19305aa1a082579b4acb5542fc4d7799d70e64cd10a29712438e35006e86
-  size: 9530
-  modtime: 1565794496
+  hash: 84fd68418dfb710a1743534cc452458ec2d07f0eaf6ee6909038c6d6d98adff5
+  size: 9830
+  modtime: 1572196949
 /Users/matt/dev/haskell/weight-tracker/weight-tracker.cabal:
-  hash: 049cc6eff5f98ba35c2a8cc509e7fea28da4a95abcdd45e22482a097ee424f9b
-  size: 928
-  modtime: 1565781272
+  hash: ae2b1d0ed28c773713aaa73e2fb7fd3652395bef743bef9d1f7700c4c5f74d33
+  size: 889
+  modtime: 1567769381

@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<title>/Users/matt/dev/haskell/weight-tracker/src/Date.hs</title>
+</head>
+<head>
+<link type='text/css' rel='stylesheet' href='liquid.css' />
+</head>
+
+<body>
+<hr>
+Put mouse over identifiers to see inferred types
+<pre><span class=hs-linenum> 1: </span><a class=annot href="#"><span class=annottext>GHC.Types.Module</span><span class='hs-comment'>{-# LANGUAGE OverloadedStrings #-}</span></a>
+<span class=hs-linenum> 2: </span>
+<span class=hs-linenum> 3: </span><span class='hs-keyword'>module</span> <span class='hs-conid'>Date</span> <span class='hs-layout'>(</span><span class='hs-varid'>getCurrentTimeText</span><span class='hs-layout'>,</span> <span class='hs-varid'>readDate</span><span class='hs-layout'>,</span> <span class='hs-varid'>shortPrettyPrintTime</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<span class=hs-linenum> 4: </span>
+<span class=hs-linenum> 5: </span><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data.Time</span>
+<span class=hs-linenum> 6: </span><span class='hs-keyword'>import</span>           <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data.Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>T</span>
+<span class=hs-linenum> 7: </span>
+<span class=hs-linenum> 8: </span><span class='hs-definition'>getCurrentTimeText</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IO</span> <span class='hs-conid'>String</span>
+<span class=hs-linenum> 9: </span><a class=annot href="#"><span class=annottext>(GHC.Types.IO [GHC.Types.Char])</span><span class='hs-definition'>getCurrentTimeText</span></a> <span class='hs-keyglyph'>=</span> <a class=annot href="#"><span class=annottext>Data.Time.Clock.Internal.UTCTime.UTCTime -&gt; [GHC.Types.Char]</span><span class='hs-varid'>formatTime</span></a> <a class=annot href="#"><span class=annottext>{v : Data.Time.Format.Locale.TimeLocale | v == defaultTimeLocale}</span><span class='hs-varid'>defaultTimeLocale</span></a> <a class=annot href="#"><span class=annottext>{v : [GHC.Types.Char] | len v &gt;= 0
+                        &amp;&amp; v == dateFormat}</span><span class='hs-varid'>dateFormat</span></a> <span class='hs-varop'>&lt;$&gt;</span> <a class=annot href="#"><span class=annottext>{v : (GHC.Types.IO Data.Time.Clock.Internal.UTCTime.UTCTime) | v == getCurrentTime}</span><span class='hs-varid'>getCurrentTime</span></a>
+<span class=hs-linenum>10: </span>
+<span class=hs-linenum>11: </span><span class='hs-definition'>readDate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>T.Text</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-conid'>UTCTime</span>
+<span class=hs-linenum>12: </span><a class=annot href="#"><span class=annottext>Data.Text.Internal.Text -&gt; (GHC.Maybe.Maybe Data.Time.Clock.Internal.UTCTime.UTCTime)</span><span class='hs-definition'>readDate</span></a> <span class='hs-keyglyph'>=</span>  <a class=annot href="#"><span class=annottext>[GHC.Types.Char] -&gt; (GHC.Maybe.Maybe Data.Time.Clock.Internal.UTCTime.UTCTime)</span><span class='hs-varid'>parseTimeM</span></a> <a class=annot href="#"><span class=annottext>{v : GHC.Types.Bool | not v
+                      &amp;&amp; v == False}</span><span class='hs-conid'>False</span></a> <a class=annot href="#"><span class=annottext>{v : Data.Time.Format.Locale.TimeLocale | v == defaultTimeLocale}</span><span class='hs-varid'>defaultTimeLocale</span></a> <a class=annot href="#"><span class=annottext>{v : [GHC.Types.Char] | len v &gt;= 0
+                        &amp;&amp; v == dateFormat}</span><span class='hs-varid'>dateFormat</span></a> <span class='hs-varop'>.</span> <a class=annot href="#"><span class=annottext>x1:Data.Text.Internal.Text -&gt; {v : [GHC.Types.Char] | len v == tlen x1}</span><span class='hs-conid'>T.unpack</span></a>
+<span class=hs-linenum>13: </span>
+<span class=hs-linenum>14: </span><span class='hs-definition'>dateFormat</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
+<span class=hs-linenum>15: </span><a class=annot href="#"><span class=annottext>[GHC.Types.Char]</span><span class='hs-definition'>dateFormat</span></a> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso8601DateFormat</span> <a class=annot href="#"><span class=annottext>{v : (GHC.Maybe.Maybe [GHC.Types.Char]) | isJust v &lt;=&gt; true}</span><span class='hs-layout'>(</span></a><span class='hs-conid'>Just</span> <a class=annot href="#"><span class=annottext>[GHC.Types.Char]</span><span class='hs-str'>"%H:%M"</span></a><span class='hs-layout'>)</span>
+<span class=hs-linenum>16: </span>
+<span class=hs-linenum>17: </span><span class='hs-definition'>shortPrettyPrintTime</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>FormatTime</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span>
+<span class=hs-linenum>18: </span><a class=annot href="#"><span class=annottext>forall a .
+(Data.Time.Format.FormatTime&lt;[]&gt; a) =&gt;
+a -&gt; [GHC.Types.Char]</span><span class='hs-definition'>shortPrettyPrintTime</span></a> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>formatTime</span> <a class=annot href="#"><span class=annottext>{v : Data.Time.Format.Locale.TimeLocale | v == defaultTimeLocale}</span><span class='hs-varid'>defaultTimeLocale</span></a> <a class=annot href="#"><span class=annottext>[GHC.Types.Char]</span><span class='hs-str'>"%a, %b %d"</span></a>
+</pre>
+</body>
+</html>
