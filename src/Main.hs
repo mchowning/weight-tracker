@@ -56,7 +56,8 @@ main = do
 
   blankLine
   let allDaysWithWeights = filledDays savedWeights
-  when (length allDaysWithWeights >= 2 * 7) (displayMovingAverages 2 allDaysWithWeights)
+      weeksForMovingAverage = 4
+  when (length allDaysWithWeights >= weeksForMovingAverage * 7) (displayMovingAverages weeksForMovingAverage allDaysWithWeights)
   where filename = "/Users/matt/Dropbox/Exercise/weights.csv"
   -- where filename = "weights.csv"
 
