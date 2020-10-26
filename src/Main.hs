@@ -31,6 +31,7 @@ import           Turtle                                   ( Line
                                                           , argDouble
                                                           , cp
                                                           , fold
+                                                          , home
                                                           , input
                                                           , lineToText
                                                           , optional
@@ -49,6 +50,8 @@ fromWeight (Weight w) = w
 main :: IO ()
 main = do
   blankLine
+  filename <- (<> "Dropbox/Exercise/weights.csv") <$> home
+  -- let filename = "weights.csv"
   saveWeightArg filename
 
   savedWeights <- mapMaybe lineToEntry <$> fold (input filename) Foldl.list
@@ -58,8 +61,6 @@ main = do
   let allDaysWithWeights = filledDays savedWeights
       weeksForMovingAverage = 4
   when (length allDaysWithWeights >= weeksForMovingAverage * 7) (displayMovingAverages weeksForMovingAverage allDaysWithWeights)
-  where filename = "/Users/matt/Dropbox/Exercise/weights.csv"
-  -- where filename = "weights.csv"
 
 blankLine :: IO ()
 blankLine = putStrLn ""
