@@ -19,11 +19,13 @@ executable weight-tracker
   -- ghc-options:         -Wall
                       --  -Werror
   build-depends:       base >= 4.7 && < 5
+                     , bifunctors
                      , cassava
+                     , containers
                      , foldl
                      , split
                      , text
                      , time
-                    , turtle
+                     , turtle
                      , unordered-containers
   other-modules:     Date

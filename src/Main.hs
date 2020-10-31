@@ -13,6 +13,7 @@ import           Control.Monad                            ( forM_
                                                           , mzero
                                                           , when
                                                           )
+import Data.Bifunctor                                     (first)
 import qualified Data.HashMap.Strict           as HM
 import qualified Data.List                     as L
 import Data.List.Split (divvy)
@@ -23,6 +24,7 @@ import           Data.Ord                                 ( comparing )
 import           Data.Text                                ( Text )
 import qualified Data.Text                     as T
 import           Data.Time
+import           Data.Time.Calendar
 import           Text.Read                                ( readMaybe )
 import           Turtle                                   ( Line
                                                           , FilePath
@@ -57,10 +59,16 @@ main = do
   savedWeights <- mapMaybe lineToEntry <$> fold (input filename) Foldl.list
   displayFromLastWeek savedWeights
 
-  blankLine
   let allDaysWithWeights = filledDays savedWeights
-      weeksForMovingAverage = 4
-  when (length allDaysWithWeights >= weeksForMovingAverage * 7) (displayMovingAverages weeksForMovingAverage allDaysWithWeights)
+
+  let weeksForMovingAverage = 4
+  when (length allDaysWithWeights >= weeksForMovingAverage * 7)
+    (do
+      blankLine
+      displayMovingAverages 10 weeksForMovingAverage allDaysWithWeights)
+
+  blankLine
+  displayMonthlyAverages allDaysWithWeights
 
 blankLine :: IO ()
 blankLine = putStrLn ""
@@ -203,11 +211,60 @@ fillKnownDays es ds =
   { weeks : Int | weeks > 0 } -> 
   ls : [(Day, Weight)] -> 
   io : IO () @-}
-displayMovingAverages :: Int -> [(Day, Weight)] -> IO ()
-displayMovingAverages weeks es = do
+displayMovingAverages :: Int -> Int -> [(Day, Weight)] -> IO ()
+displayMovingAverages numToDisplay weeks es = do
   printHeading ("Trailing " <> show weeks <> " Week Averages")
-  forM_ (movingAverages weeks es) (\(start, end, avg) ->
+  let averages = movingAverages weeks es
+      -- everyOther xs = [ fst x | x <- zip xs [1..], odd (snd x)]
+      -- averagesToPrint = everyOther . take numToDisplay $ averages
+      averagesToPrint = take numToDisplay $ averages
+  forM_ averagesToPrint (\(_, end, avg) ->
     putStrLn (shortPrettyPrintTime end <> ": " <> show avg))
+
+displayMonthlyAverages :: [(Day, Weight)] -> IO ()
+displayMonthlyAverages es = do
+  printHeading "Monthly Averages"
+  let averageMap = monthlyAverages es
+      sorted :: [(Year, MonthOfYear, Weight)]
+      year (y,_,_) = y
+      month (_,m,_) = m
+      sorted = (reverse . L.sortOn year . L.sortOn month) $ (\((y, m), w) -> (y, m, w)) <$> HM.toList averageMap
+  forM_ sorted (\(year, month, avg) ->
+    -- putStrLn (show year <> "-" <> pad 2 (show month) <> ": " <> show (fromWeight avg)))
+    putStrLn (show year <> " " <> monthAbbrv month <> ": " <> show (fromWeight avg)))
+  where
+      year (y,_,_) = y
+      month (_,m,_) = m
+      pad n str = replicate (n - length str) '0' ++ str
+      monthAbbrv 1 = "Jan"
+      monthAbbrv 2 = "Feb"
+      monthAbbrv 3 = "Mar"
+      monthAbbrv 4 = "Apr"
+      monthAbbrv 5 = "May"
+      monthAbbrv 6 = "Jun"
+      monthAbbrv 7 = "Jul"
+      monthAbbrv 8 = "Aug"
+      monthAbbrv 9 = "Sep"
+      monthAbbrv 10 = "Oct"
+      monthAbbrv 11 = "Nov"
+      monthAbbrv 12 = "Dec"
+
+type Year = Integer
+type MonthOfYear = Int
+type DayOfMonth = Int
+
+monthlyAverages :: [(Day, Weight)] -> HM.HashMap (Year, MonthOfYear) Weight
+monthlyAverages es = (Weight . average . fmap fromWeight) <$> grouped
+  -- (\((y,m,_), w) -> (y,m,w)) <$> (expand (L.sortOn fst es))
+ where
+  expanded :: [((Year, MonthOfYear), Weight)]
+  expanded = first monthYear <$> es
+
+  monthYear :: Day -> (Year, MonthOfYear)
+  monthYear = (\(y,m,_) -> (y,m)) . toGregorian
+
+  grouped :: HM.HashMap (Year, MonthOfYear) [Weight]
+  grouped = L.foldl' (\m (k,v) -> HM.insertWith (++) k [v] m) HM.empty expanded
 
 -- {-@ assume divvy ::
 --     a : Nat ->
