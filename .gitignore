@@ -1,2 +1,4 @@
 .stack-work/
 *.iml
+.liquid/
+dist-newstyle/

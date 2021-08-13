@@ -1,31 +1,81 @@
-name:                weight-tracker
-version:             0.1.0.0
--- synopsis:
--- description:
-homepage:            https://github.com/githubuser/weight-tracker
-license:             BSD3
-license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2019 Author name here
-category:            Web
-build-type:          Simple
-cabal-version:       >=1.10
+cabal-version: 1.12
 
-executable weight-tracker
-  hs-source-dirs:      src
-  main-is:             Main.hs
-  default-language:    Haskell2010
-  -- ghc-options:         -Wall
-                      --  -Werror
-  build-depends:       base >= 4.7 && < 5
-                     , bifunctors
-                     , cassava
-                     , containers
-                     , foldl
-                     , split
-                     , text
-                     , time
-                     , turtle
-                     , unordered-containers
-  other-modules:     Date
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           weight-tracker
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/weight-tracker#readme>
+homepage:       https://github.com/githubuser/weight-tracker#readme
+bug-reports:    https://github.com/githubuser/weight-tracker/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2021 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/weight-tracker
+
+library
+  exposed-modules:
+      Date
+      Lib
+  other-modules:
+      Paths_weight_tracker
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , bifunctors
+    , cassava
+    , containers
+    , foldl
+    , liquidhaskell
+    , split
+    , text
+    , time
+    , turtle
+    , unordered-containers
+  default-language: Haskell2010
+
+executable weight-tracker-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_weight_tracker
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bifunctors
+    , cassava
+    , containers
+    , foldl
+    , liquidhaskell
+    , split
+    , text
+    , time
+    , turtle
+    , unordered-containers
+    , weight-tracker
+  default-language: Haskell2010
+
+test-suite weight-tracker-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_weight_tracker
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , weight-tracker
+  default-language: Haskell2010
