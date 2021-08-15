@@ -8,7 +8,7 @@ import           qualified Data.Text as T
 getCurrentTimeText :: IO String
 getCurrentTimeText = formatTime defaultTimeLocale dateFormat <$> getCurrentTime
 
-readDate :: T.Text -> Maybe UTCTime
+readDate :: (MonadFail m, ParseTime t) => T.Text -> m t
 readDate =  parseTimeM False defaultTimeLocale dateFormat . T.unpack
 
 dateFormat :: String

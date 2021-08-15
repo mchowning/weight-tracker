@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE BlockArguments #-}
 
 module Main where
 
@@ -34,30 +35,24 @@ import Turtle
   )
 import qualified Turtle
 
-newtype Weight = Weight Double deriving (Show)
-
-fromWeight :: Weight -> Double
-fromWeight (Weight w) = w
-
 main :: IO ()
 main = do
   blankLine
-  filename <- (<> "Dropbox/Exercise/weights.csv") <$> Turtle.home
-  -- let filename = "weights.csv"
+  -- filename <- (<> "Dropbox/Exercise/weights.csv") <$> Turtle.home
+  let filename = "weights.csv"
   saveWeightArg filename
 
-  savedWeights <- mapMaybe lineToEntry <$> Turtle.fold (Turtle.input filename) Foldl.list
-  displayFromLastWeek savedWeights
+  savedEntries <- do
+    lines <- Turtle.fold (Turtle.input filename) Foldl.list
+    return (lineToEntry <$> lines)
+  displayFromLastWeek savedEntries
 
-  let allDaysWithWeights = filledDays savedWeights
-
+  let allDaysWithWeights = filledDays savedEntries
   let weeksForMovingAverage = 4
-  when
-    (length allDaysWithWeights >= weeksForMovingAverage * 7)
-    ( do
-        blankLine
-        displayMovingAverages 10 weeksForMovingAverage allDaysWithWeights
-    )
+  let enoughEntriesForMovingAverage = length allDaysWithWeights >= weeksForMovingAverage * 7
+  when enoughEntriesForMovingAverage do
+    blankLine
+    displayMovingAverages 10 weeksForMovingAverage allDaysWithWeights
 
   blankLine
   displayMonthlyAverages allDaysWithWeights
@@ -69,13 +64,16 @@ saveWeightArg :: Turtle.FilePath -> IO ()
 saveWeightArg fp = do
   maybeWeight <- parseArgs
   sequence_ (updateSavedWeights fp <$> maybeWeight)
-  let showSavedWeight w = putStrLn ("Weight of " <> showWeight w <> " successfully saved!") >> blankLine
+  let showSavedWeight w = do
+        putStrLn ("Weight of " <> showWeight w <> " successfully saved!")
+        blankLine
   sequence_ (showSavedWeight <$> maybeWeight)
 
 updateSavedWeights :: Turtle.FilePath -> Weight -> IO ()
 updateSavedWeights path weight = do
   let orig = Turtle.input path
   let updated = orig <|> liftIO (createEntryLine weight)
+
   Turtle.output "/tmp/temp_weight.csv" updated
   Turtle.cp "/tmp/temp_weight.csv" path
 
@@ -94,21 +92,7 @@ parseArgs = Turtle.options "Daily Weight Tracker" parser
             Turtle.optional (Turtle.argDouble "weight" "Weight entry for today (must be a number)")
        in (fmap . fmap) Weight parserMaybeDouble
 
-showWeight :: Weight -> String
-showWeight (Weight w) = show w
-
 ---------------------------------------------------------------------------
-
-data Entry = Entry
-  { entryDate :: UTCTime,
-    entryWeight :: Weight
-  }
-  deriving (Show)
-
-type DayInt = Int
-
-entryDay :: Entry -> Day
-entryDay = utctDay . entryDate
 
 prettyPrintEntry :: Entry -> String
 prettyPrintEntry (Entry time (Weight w)) =
@@ -140,6 +124,103 @@ displayLastN n es =
   let heading = "Last " <> show n <> " Entries"
       lastN = take n (reverse es)
    in displayEntries heading lastN
+
+{-@ displayMovingAverages ::
+  { weeks : Int | weeks > 0 } ->
+  ls : [(Day, Weight)] ->
+  io : IO () @-}
+displayMovingAverages :: Int -> Int -> [(Day, Weight)] -> IO ()
+displayMovingAverages numToDisplay weeks es = do
+  printHeading ("Trailing " <> show weeks <> " Week Averages")
+  let averages = movingAverages weeks es
+      -- everyOther xs = [ fst x | x <- zip xs [1..], odd (snd x)]
+      -- averagesToPrint = everyOther . take numToDisplay $ averages
+      averagesToPrint = take numToDisplay $ averages
+  forM_
+    averagesToPrint
+    ( \(_, end, avg) ->
+        putStrLn (shortPrettyPrintTime end <> ": " <> show avg)
+    )
+
+displayMonthlyAverages :: [(Day, Weight)] -> IO ()
+displayMonthlyAverages es = do
+  printHeading "Monthly Averages"
+  let averageMap = monthlyAverages es
+      sorted :: [(Year, MonthOfYear, Weight)]
+      year (y, _, _) = y
+      month (_, m, _) = m
+      sorted = reverse . L.sortOn year . L.sortOn month $ (\((y, m), w) -> (y, m, w)) <$> HM.toList averageMap
+  forM_
+    sorted
+    ( \(year, month, avg) ->
+        -- putStrLn (show year <> "-" <> pad 2 (show month) <> ": " <> show (fromWeight avg)))
+        putStrLn (show year <> " " <> monthAbbrv month <> ": " <> show (fromWeight avg))
+    )
+  where
+    year (y, _, _) = y
+    month (_, m, _) = m
+    pad n str = replicate (n - length str) '0' ++ str
+    monthAbbrv 1 = "Jan"
+    monthAbbrv 2 = "Feb"
+    monthAbbrv 3 = "Mar"
+    monthAbbrv 4 = "Apr"
+    monthAbbrv 5 = "May"
+    monthAbbrv 6 = "Jun"
+    monthAbbrv 7 = "Jul"
+    monthAbbrv 8 = "Aug"
+    monthAbbrv 9 = "Sep"
+    monthAbbrv 10 = "Oct"
+    monthAbbrv 11 = "Nov"
+    monthAbbrv 12 = "Dec"
+    monthAbbrv m = error ("Invalid month value: " <> show m)
+
+-- linesToEntries :: Turtle.Shell Turtle.Line -> Turtle.Shell Entry
+-- linesToEntries lines = maybeToMonadPlus . lineToEntry =<< lines
+--   where
+--     maybeToMonadPlus :: Turtle.MonadPlus m => Maybe a -> m a
+--     maybeToMonadPlus = maybe mzero return
+
+-- FIXME: Need some kind of notification coming out of this that there was a parse error (and whether
+--   the error was on the weight or the date parsing)
+lineToEntry :: Turtle.Line -> Entry
+lineToEntry l =
+  let text = Turtle.lineToText l
+   in case T.splitOn "," text of
+        [dateText, weightText] ->
+          let date = case readDate dateText of
+                Nothing -> error ("Failed to parse date from line: " <> T.unpack text)
+                Just date -> date
+              weight = case readWeight weightText of
+                Nothing -> error ("Failed to parse weight from line: " <> T.unpack text)
+                Just weight -> weight
+           in Entry date weight
+        _ -> error ("Failed to parse Entry from line: " <> T.unpack text)
+  where
+    readWeight :: Text -> Maybe Weight
+    readWeight = fmap Weight . readMaybe . T.unpack
+
+---------------------------------------------------------
+---------------------------------------------------------
+---------------------------------------------------------
+
+data Entry = Entry
+  { entryDate :: UTCTime,
+    entryWeight :: Weight
+  }
+  deriving (Show)
+
+type DayInt = Int
+
+entryDay :: Entry -> Day
+entryDay = utctDay . entryDate
+
+newtype Weight = Weight Double deriving (Show)
+
+fromWeight :: Weight -> Double
+fromWeight (Weight w) = w
+
+showWeight :: Weight -> String
+showWeight (Weight w) = show w
 
 -- {-@ type OrdDayList d = [d]<{\d1 d2 -> d1 > d2}> @-}
 -- {-@ orderedDayList :: OrdDayList Day @-}
@@ -201,55 +282,6 @@ fillKnownDays es ds =
     dayWithWeight :: HM.HashMap DayInt Weight -> Day -> (Day, Maybe Weight)
     dayWithWeight dMap d = (d, HM.lookup (fromEnum d) dMap)
 
-{-@ displayMovingAverages ::
-  { weeks : Int | weeks > 0 } ->
-  ls : [(Day, Weight)] ->
-  io : IO () @-}
-displayMovingAverages :: Int -> Int -> [(Day, Weight)] -> IO ()
-displayMovingAverages numToDisplay weeks es = do
-  printHeading ("Trailing " <> show weeks <> " Week Averages")
-  let averages = movingAverages weeks es
-      -- everyOther xs = [ fst x | x <- zip xs [1..], odd (snd x)]
-      -- averagesToPrint = everyOther . take numToDisplay $ averages
-      averagesToPrint = take numToDisplay $ averages
-  forM_
-    averagesToPrint
-    ( \(_, end, avg) ->
-        putStrLn (shortPrettyPrintTime end <> ": " <> show avg)
-    )
-
-displayMonthlyAverages :: [(Day, Weight)] -> IO ()
-displayMonthlyAverages es = do
-  printHeading "Monthly Averages"
-  let averageMap = monthlyAverages es
-      sorted :: [(Year, MonthOfYear, Weight)]
-      year (y, _, _) = y
-      month (_, m, _) = m
-      sorted = reverse . L.sortOn year . L.sortOn month $ (\((y, m), w) -> (y, m, w)) <$> HM.toList averageMap
-  forM_
-    sorted
-    ( \(year, month, avg) ->
-        -- putStrLn (show year <> "-" <> pad 2 (show month) <> ": " <> show (fromWeight avg)))
-        putStrLn (show year <> " " <> monthAbbrv month <> ": " <> show (fromWeight avg))
-    )
-  where
-    year (y, _, _) = y
-    month (_, m, _) = m
-    pad n str = replicate (n - length str) '0' ++ str
-    monthAbbrv 1 = "Jan"
-    monthAbbrv 2 = "Feb"
-    monthAbbrv 3 = "Mar"
-    monthAbbrv 4 = "Apr"
-    monthAbbrv 5 = "May"
-    monthAbbrv 6 = "Jun"
-    monthAbbrv 7 = "Jul"
-    monthAbbrv 8 = "Aug"
-    monthAbbrv 9 = "Sep"
-    monthAbbrv 10 = "Oct"
-    monthAbbrv 11 = "Nov"
-    monthAbbrv 12 = "Dec"
-    monthAbbrv m = error ("Invalid month value: " <> show m)
-
 type Year = Integer
 
 type MonthOfYear = Int
@@ -297,20 +329,3 @@ fillEntries earliest latest =
   let earliestDay = utctDay (entryDate earliest)
       lastDay = utctDay (entryDate latest)
    in enumFromTo earliestDay lastDay
-
-linesToEntries :: Turtle.Shell Turtle.Line -> Turtle.Shell Entry
-linesToEntries sLines = do
-  mEntry <- lineToEntry <$> sLines
-  maybe mzero return mEntry
-
--- FIXME: Need some kind of notification coming out of this that there was a parse error (and whether
---   the error was on the weight or the date parsing)
-lineToEntry :: Turtle.Line -> Maybe Entry
-lineToEntry l =
-  let text = Turtle.lineToText l
-   in case T.splitOn "," text of
-        [date, weight] -> Entry <$> readDate date <*> readWeight weight
-        _ -> Nothing
-  where
-    readWeight :: Text -> Maybe Weight
-    readWeight = fmap Weight . readMaybe . T.unpack
