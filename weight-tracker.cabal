@@ -25,8 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Averages
       Date
       Lib
+      Types
   other-modules:
       Paths_weight_tracker
   hs-source-dirs:
@@ -47,6 +49,9 @@ library
 executable weight-tracker-exe
   main-is: Main.hs
   other-modules:
+      AppUtils
+      DisplayAverages
+      Grid
       Paths_weight_tracker
   hs-source-dirs:
       app
