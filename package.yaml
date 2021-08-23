@@ -46,6 +46,7 @@ executables:
     - -Wall
     dependencies:
     - weight-tracker
+    - ansi-terminal
     - bifunctors
     - cassava
     - containers

@@ -17,6 +17,8 @@ import Data.List.NonEmpty (NonEmpty)
 import Control.Monad (forM_)
 import AppUtils
 import Averages
+import System.Console.ANSI
+import GHC.Base (when)
 
 type Grid = [[Text]]
 
@@ -48,6 +50,10 @@ printGrid heading g = do
       padded = (fmap . fmap) (T.center widest ' ') g
   blankLine
   printHeading heading
-  forM_ padded \row -> do
-    forM_ row TIO.putStr
+  forM_ (zip [(0 :: Int) ..] padded) \(rowIdx, row) -> do
+    forM_ (zip [(0 :: Int) ..] row) \(colIdx, cell) -> do
+      let emphasize = rowIdx == 0 || colIdx == 0
+      when emphasize (setSGR emphasizeSGR)
+      TIO.putStr cell
+      when emphasize (setSGR [Reset])
     blankLine

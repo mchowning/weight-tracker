@@ -2,7 +2,9 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE
+
+ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 
 module Main where
