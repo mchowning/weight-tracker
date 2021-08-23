@@ -10,13 +10,11 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.List as L
-import Lib
 import Types
 import Data.Functor ((<&>))
-import Date (shortPrettyPrintTime)
 import qualified Data.List.NonEmpty as NE
-import Data.List.NonEmpty (NonEmpty ((:|)), (<|))
-import Control.Monad (join, forM_)
+import Data.List.NonEmpty (NonEmpty)
+import Control.Monad (forM_)
 import AppUtils
 import Averages
 

@@ -1,38 +1,28 @@
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 module Main where
 
+import AppUtils
 import qualified Control.Foldl as Foldl
-import Control.Monad
-  ( forM_,
-    when,
-  )
 import Control.Monad.IO.Class (liftIO)
-import Data.Functor
-import qualified Data.HashMap.Strict as HM
-import qualified Data.List as L
-import qualified Data.Ord as Ord
+import qualified Data.List.NonEmpty as NE
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
 import Data.Time
 import Date
-import Lib
+import DisplayAverages
 import Text.Read (readMaybe)
 import Turtle
   ( (<|>),
   )
 import qualified Turtle
-import qualified Data.List.NonEmpty as NE
-
-import AppUtils
-import DisplayAverages
 import Types
--- import Grid
+import Averages
 
 main :: IO ()
 main = do
@@ -41,9 +31,11 @@ main = do
   -- let filename = "weights.csv"
   saveWeightArg filename
 
-  savedEntries <- do
-    lines <- Turtle.fold (Turtle.input filename) Foldl.list
-    return (lineToEntry <$> lines)
+  savedEntries :: [Entry] <- do
+    lineLs <- Turtle.fold (Turtle.input filename) Foldl.list
+    -- TODO would be more efficient to apply lineToEntry in the fold, but not sure how to do that with lineToEntry being impure
+    sequence (lineToEntry <$> lineLs)
+
   displayFromLastWeek savedEntries
 
   let allDaysWithWeights = filledDays savedEntries
@@ -54,36 +46,31 @@ main = do
 
 saveWeightArg :: Turtle.FilePath -> IO ()
 saveWeightArg fp = do
-  maybeWeight <- parseArgs
-  sequence_ (updateSavedWeights fp <$> maybeWeight)
-  let showSavedWeight w = do
-        putStrLn ("Weight of " <> showWeight w <> " successfully saved!")
-        blankLine
-  sequence_ (showSavedWeight <$> maybeWeight)
-    where
-      parseArgs :: IO (Maybe Weight)
-      parseArgs = Turtle.options "Daily Weight Tracker" parser
-
-      parser :: Turtle.Parser (Maybe Weight)
-      parser =
-        let parserMaybeDouble =
-              Turtle.optional (Turtle.argDouble "weight" "Weight entry for today (must be a number)")
-        in (fmap . fmap) Weight parserMaybeDouble
+  maybeWeight <- Turtle.options "Daily Weight Tracker" do
+    maybeDouble <- Turtle.optional (Turtle.argDouble "weight" "Weight entry for today (must be a number)")
+    pure (Weight <$> maybeDouble)
+  case maybeWeight of
+    Nothing -> return ()
+    Just weight -> do
+      updateSavedWeights fp weight
+      let showSavedWeight w = do
+            putStrLn ("Weight of " <> showWeight w <> " successfully saved!")
+            blankLine
+      showSavedWeight weight
 
 updateSavedWeights :: Turtle.FilePath -> Weight -> IO ()
 updateSavedWeights path weight = do
   let orig = Turtle.input path
-  let updated = orig <|> liftIO (createEntryLine weight)
+  let updated = orig <|> liftIO createEntryLine
 
   Turtle.output "/tmp/temp_weight.csv" updated
   Turtle.cp "/tmp/temp_weight.csv" path
-    where
-      createEntryLine :: Weight -> IO Turtle.Line
-      createEntryLine w = do
-        now <- getCurrentTimeText
-        let line = now <> "," <> showWeight w
-        return . Turtle.unsafeTextToLine . T.pack $ line
-
+  where
+    createEntryLine :: IO Turtle.Line
+    createEntryLine = do
+      now <- getCurrentTimeText
+      let line = now <> "," <> showWeight weight
+      return . Turtle.unsafeTextToLine . T.pack $ line
 
 displayFromLastWeek :: [Entry] -> IO ()
 displayFromLastWeek es = do
@@ -91,24 +78,52 @@ displayFromLastWeek es = do
   today <- utctDay <$> getCurrentTime
   let last8Days = fromLastNDays 8 today es
   displayEntries heading (reverse last8Days)
-    where
-      fromLastNDays :: Integer -> Day -> [Entry] -> [Entry]
-      fromLastNDays n day =
-        filter ((< n) . diffDays day . utctDay . entryDate)
+  where
+    fromLastNDays :: Integer -> Day -> [Entry] -> [Entry]
+    fromLastNDays n day =
+      filter ((< n) . diffDays day . utctDay . entryDate)
 
-lineToEntry :: Turtle.Line -> Entry
-lineToEntry l =
+lineToEntry :: MonadFail m => Turtle.Line -> m Entry
+lineToEntry l = do
   let text = Turtle.lineToText l
-   in case T.splitOn "," text of
-        [dateText, weightText] ->
-          let date = case readDate dateText of
-                Nothing -> error ("Failed to parse date from line: " <> T.unpack text)
-                Just date -> date
-              weight = case readWeight weightText of
-                Nothing -> error ("Failed to parse weight from line: " <> T.unpack text)
-                Just weight -> weight
-           in Entry date weight
-        _ -> error ("Failed to parse Entry from line: " <> T.unpack text)
+  [dateText, weightText] <- case T.splitOn "," text of
+    [a, b] -> return [a, b]
+    _ -> fail ("Failed to parse Entry from line: " <> T.unpack text)
+  date <- case readDate dateText of
+    Just date -> return date
+    Nothing -> fail ("Failed to parse date from line: " <> T.unpack text)
+  weight <- case readWeight weightText of
+    Just weight -> return weight
+    Nothing -> fail ("Failed to parse weight from line: " <> T.unpack text)
+  return (Entry date weight)
   where
     readWeight :: Text -> Maybe Weight
     readWeight = fmap Weight . readMaybe . T.unpack
+
+-- data ReadEntryException = FailedToReadEntry Text
+--                         | FailedToReadDate Text
+--                         | FailedToReadWeight Text
+-- instance Exception ReadEntryException
+
+-- instance Show ReadEntryException where
+--   show = \case
+--     FailedToReadEntry t -> "Failed to parse Entry from line: " <> T.unpack t
+--     FailedToReadDate t -> "Failed to parse date from line: " <> T.unpack t
+--     FailedToReadWeight t -> "Failed to parse weight from line: " <> T.unpack t
+
+-- lineToEntry :: (MonadFail m, MonadThrow m) => Turtle.Line -> m Entry
+-- lineToEntry l = do
+--   let text = Turtle.lineToText l
+--   [dateText, weightText] <- case T.splitOn "," text of
+--     [a, b] -> return [a, b]
+--     _ -> throwM (FailedToReadEntry text)
+--   date <- case readDate dateText of
+--     Just date -> return date
+--     Nothing -> throwM (FailedToReadDate text)
+--   weight <- case readWeight weightText of
+--     Just weight -> return weight
+--     Nothing -> throwM (FailedToReadWeight text)
+--   return (Entry date weight)
+--   where
+--     readWeight :: Text -> Maybe Weight
+--     readWeight = fmap Weight . readMaybe . T.unpack

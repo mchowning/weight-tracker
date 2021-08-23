@@ -27,7 +27,6 @@ library
   exposed-modules:
       Averages
       Date
-      Lib
       Types
   other-modules:
       Paths_weight_tracker
@@ -55,13 +54,15 @@ executable weight-tracker-exe
       Paths_weight_tracker
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
     , bifunctors
     , cassava
     , containers
+    , exceptions
     , foldl
+    , safe-exceptions
     , split
     , text
     , time
