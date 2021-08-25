@@ -47,6 +47,7 @@ executables:
     dependencies:
     - weight-tracker
     - ansi-terminal
+    - asciichart
     - bifunctors
     - cassava
     - containers

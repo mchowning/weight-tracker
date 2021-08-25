@@ -22,6 +22,7 @@ import Text.Read (readMaybe)
 import Turtle
   ( (<|>),
   )
+import Data.Text.Chart
 import qualified Turtle
 import Types
 import Averages
@@ -43,6 +44,21 @@ main = do
   let allDaysWithWeights = filledDays savedEntries
       movingAverageWeeks = NE.fromList [1, 2, 4]
       weeksText = T.intercalate "/" . fmap (T.pack . show) $ NE.toList movingAverageWeeks
+      plotDays = 90
+      plotData =
+        fmap (round -- because this plotting library requires Integer
+              . (*10) -- in order to not lose the decimal data
+              . fromWeight
+              . filledDayWeight)
+        . reverse
+        . take plotDays
+        . reverse
+        $ allDaysWithWeights
+
+  blankLine
+  printHeading ("Last " <> T.pack (show plotDays) <> " Days")
+  plot plotData
+
   printMovingAverageGrids allDaysWithWeights movingAverageWeeks (weeksText <> " Week Trailing Averages")
   printMonthlyAverages allDaysWithWeights
 
